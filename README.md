@@ -20,6 +20,19 @@ Image shows example of save string. (It is save string of first screenshot image
 You can load image by input save string into load screen.
 Once you enter save string and press enter. string is decrypted and loaded into paint.
 
+## How does it work?
+Each cell can have 5 possibilities - this means block of two cells can have 25 possibilities.
+
+Let white-white (which will occure most often) aside, we have 24 possibilities left - code it into A to X.
+
+Save code works as follow -
+
+ - If you see character (A to X), it means pattern combination (mentioned earlier).
+ - If you see number not proceed by Y, it means repetation of white-white combination. (ex: 16 means 32 whites.)
+ - If you see `[char]Y[num]`, it means `char` is repeated by `num` times. (`num` > 4)
+ - If you see `[char]Y[num1]Y[num2]`, it means `char` is repeated by `num1` times, with `num2` * 2 white following.
+
+
 # Classes
 
 Five classes are used to make this happened.
