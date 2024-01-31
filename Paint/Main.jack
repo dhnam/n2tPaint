@@ -208,6 +208,7 @@ class Main{
         }
 
         do paint.dispose();
+        do dialogue.dispose();
         return;
     }
     
