@@ -286,12 +286,132 @@ class Paint {
             do outputString.setInt(0);
         }
         do numString.dispose();
-        return outputString;
+        return compress(outputString);
     }
-    method void restoreString(String saveString) {
+
+    method String compress(String original) {
+        var String compressed, numString;
+        var int cur, prev, count, i, j;
+
+        let compressed = String.new(SIZE * SIZE / 2);
+        let numString = String.new(3);
+        while (i < original.length()) {
+            let cur = original.charAt(i);
+            if ((cur > 64) & (cur = prev)) {
+                let count = count + 1;
+            }
+            else {
+                if (count > 4) {
+                    do compressed.appendChar(89); // Y
+                    do numString.setInt(count);
+                    let j = 0;
+                    while (j < numString.length()) {
+                        do compressed.appendChar(numString.charAt(j));
+                        let j = j + 1;
+                    }
+                    if (cur < 64) {
+                        do compressed.appendChar(89);
+                    }
+                }
+                if ((count < 5) & (count > 1)) {
+                    let count = count - 1;
+                    while (count > 0) {
+                        do compressed.appendChar(prev);
+                        let count = count - 1;
+                    }
+                }
+                let count = 1;
+                do compressed.appendChar(cur);
+            }
+            let prev = cur;
+            let i = i + 1;
+        }
+        if (count > 4) {
+            do compressed.appendChar(89); // Y
+            do numString.setInt(count);
+            let j = 0;
+            while (j < numString.length()) {
+                do compressed.appendChar(numString.charAt(j));
+                let j = j + 1;
+            }
+        }
+        if ((count < 5) & (count > 1)) {
+            let count = count - 1;
+            while (count > 0) {
+                do compressed.appendChar(prev);
+                let count = count - 1;
+            }
+        }
+
+        do numString.dispose();
+        do original.dispose();
+        return compressed;
+    }
+
+    method String decompress(String compressed) {
+        var String decompressed;
+        var int i, num, repeatedChar, cur;
+        var boolean decompressing;
+
+        let decompressed = String.new(SIZE * SIZE / 2);
+        let decompressing = false;
+        while (i < compressed.length()) {
+            let cur = compressed.charAt(i);
+            if ((cur > 64) & (cur < 89)) {
+                if (~(num = 0)) {
+                    let num = num - 1;
+                    while (num > 0) {
+                        do decompressed.appendChar(repeatedChar);
+                        let num = num - 1;
+                    }
+                    let decompressing = false;
+                }
+                let repeatedChar = cur;
+                do decompressed.appendChar(cur);
+            }
+            if (cur < 64) {
+                if (decompressing) {
+                    let num = num * 10 + (cur - 48);
+                }
+                else {
+                    do decompressed.appendChar(cur);
+                }
+            }
+            if (cur = 89) { // Y
+                if (decompressing) { // numYnum
+                    let num = num - 1;
+                    while (num > 0) {
+                        do decompressed.appendChar(repeatedChar);
+                        let num = num - 1;
+                    }
+                    let decompressing = false;
+                    let repeatedChar = 0;
+                }
+                else {
+                    let decompressing = true;
+                }
+            }
+            let i = i + 1;
+        }
+        if (num > 0) {
+            let num = num - 1;
+            while (num > 0){
+                do decompressed.appendChar(repeatedChar);
+                let num = num - 1;
+            }
+        }
+
+        do compressed.dispose();
+        return decompressed;
+    }
+
+    method void restoreString(String saveStringCompressed) {
         var int i, j, col, row, curChar, curNum;
         var Array tempArray;
+        var String saveString;
         var Cell tempCell;
+
+        let saveString = decompress(saveStringCompressed);
         while (i < saveString.length()) {
             let curChar = saveString.charAt(i);
             if (curChar < 65) { // If number
